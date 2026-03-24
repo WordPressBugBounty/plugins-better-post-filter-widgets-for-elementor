@@ -5,7 +5,7 @@ Tags: elementor, woocommerce, product filter, post filter, ajax filter
 Requires at least: 6.2
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.8.4
+Stable tag: 1.8.5
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -139,6 +139,11 @@ This plugin includes both compressed and uncompressed versions of CSS and JavaSc
 
 == Changelog ==
 
+= 1.8.5 – 2026-03-24 =
+
+* Fix: Resolved an issue where selected state style controls in the Filter widget were not applied.
+* Fix: Dynamic styling in the Post widget now correctly reflects styles defined via dynamic tags.
+
 = 1.8.4 – 2026-02-26 =
 
 * New: Add to Cart support added to the Post widget.
@@ -233,6 +238,6 @@ For full changelog, see [Changelog](https://wpsmartwidgets.com/doc/better-post-a
 
 == Upgrade Notice ==
 
-= 1.8.4 =
+= 1.8.5 =
 
-This update includes security and stability improvements.
+This update includes bug fixes.

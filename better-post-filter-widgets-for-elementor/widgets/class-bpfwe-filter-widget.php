@@ -378,7 +378,7 @@ class BPFWE_Filter_Widget extends \Elementor\Widget_Base {
 				'label'     => esc_html__( 'Date Format', 'better-post-filter-widgets-for-elementor' ),
 				'type'      => \Elementor\Controls_Manager::SELECT,
 				'default'   => 'Y-m-d',
-				'options'  => [
+				'options'   => [
 					'Y-m-d'        => esc_html__( 'Year-Month-Day', 'better-post-filter-widgets-for-elementor' ),
 					'd/m/Y'        => esc_html__( 'Day/Month/Year', 'better-post-filter-widgets-for-elementor' ),
 					'l, F j'       => esc_html__( 'Weekday, Month Day', 'better-post-filter-widgets-for-elementor' ),
@@ -402,12 +402,12 @@ class BPFWE_Filter_Widget extends \Elementor\Widget_Base {
 				'type'      => \Elementor\Controls_Manager::SELECT,
 				'default'   => 'H:i',
 				'options'   => [
-					'H:i'               => esc_html__( '24H (14:30)', 'better-post-filter-widgets-for-elementor' ),
-					'H:i:s'             => esc_html__( '24H with seconds (14:30:00)', 'better-post-filter-widgets-for-elementor' ),
-					'g:i A'             => esc_html__( '12H (2:30 PM)', 'better-post-filter-widgets-for-elementor' ),
-					'g:i:s A'           => esc_html__( '12H with seconds (2:30:00 PM)', 'better-post-filter-widgets-for-elementor' ),
-					'G\h i\m'           => esc_html__( 'Duration (2h 30m)', 'better-post-filter-widgets-for-elementor' ),
-					'G\h\r\s i\m\i\n'   => esc_html__( 'Duration (2hrs 30min)', 'better-post-filter-widgets-for-elementor' ),
+					'H:i'             => esc_html__( '24H (14:30)', 'better-post-filter-widgets-for-elementor' ),
+					'H:i:s'           => esc_html__( '24H with seconds (14:30:00)', 'better-post-filter-widgets-for-elementor' ),
+					'g:i A'           => esc_html__( '12H (2:30 PM)', 'better-post-filter-widgets-for-elementor' ),
+					'g:i:s A'         => esc_html__( '12H with seconds (2:30:00 PM)', 'better-post-filter-widgets-for-elementor' ),
+					'G\h i\m'         => esc_html__( 'Duration (2h 30m)', 'better-post-filter-widgets-for-elementor' ),
+					'G\h\r\s i\m\i\n' => esc_html__( 'Duration (2hrs 30min)', 'better-post-filter-widgets-for-elementor' ),
 				],
 				'condition' => [
 					'select_filter' => [ 'Custom Field', 'Numeric' ],
@@ -827,7 +827,7 @@ class BPFWE_Filter_Widget extends \Elementor\Widget_Base {
 				'type'        => \Elementor\Controls_Manager::NOTICE,
 				'notice_type' => 'info',
 				'dismissible' => false,
-				'content' => sprintf(
+				'content'     => sprintf(
 					wp_kses(
 						// translators: %s is an HTML link to the taxonomy settings page.
 						__(
@@ -2269,7 +2269,7 @@ class BPFWE_Filter_Widget extends \Elementor\Widget_Base {
 				'label'     => esc_html__( 'Color', 'better-post-filter-widgets-for-elementor' ),
 				'type'      => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} .form-tax input:checked + span.label-text' => 'color: {{VALUE}};',
+					'{{WRAPPER}} .form-tax input:checked + span .label-text' => 'color: {{VALUE}};',
 				),
 			)
 		);
@@ -2278,7 +2278,7 @@ class BPFWE_Filter_Widget extends \Elementor\Widget_Base {
 			Group_Control_Border::get_type(),
 			array(
 				'name'     => 'filter_label_border_selected',
-				'selector' => '{{WRAPPER}} .form-tax input:checked + span.label-text',
+				'selector' => '{{WRAPPER}} .form-tax input:checked + span .label-text',
 			)
 		);
 
@@ -2289,7 +2289,7 @@ class BPFWE_Filter_Widget extends \Elementor\Widget_Base {
 				'type'       => Controls_Manager::DIMENSIONS,
 				'size_units' => array( 'px' ),
 				'selectors'  => array(
-					'{{WRAPPER}} .form-tax input:checked + span.label-text' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}} .form-tax input:checked + span .label-text' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
 			)
 		);
