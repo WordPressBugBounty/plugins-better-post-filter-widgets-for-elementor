@@ -427,6 +427,40 @@ class BPFWE_Helper {
 	}
 
 	/**
+	 * Check whether an ACF field stores its value as a serialized PHP array.
+	 *
+	 * ACF checkbox fields always serialize, and select fields serialize when
+	 * "Allow Multiple Values" is enabled. Knowing this at query time lets us
+	 * switch from an equality comparison to a LIKE search on the serialized string.
+	 *
+	 * @param string $meta_key The ACF field name (not the field_XXXX key).
+	 * @return bool True when the field stores arrays in wp_postmeta.
+	 */
+	public static function acf_field_uses_serialized_storage( $meta_key ) {
+		if ( ! function_exists( 'acf_get_field' ) ) {
+			return false;
+		}
+
+		// Use acf_get_field() instead of get_field_object() -- the latter requires
+		// a post ID context to resolve by field name and returns false without one.
+		$field = acf_get_field( $meta_key );
+
+		if ( ! $field || empty( $field['type'] ) ) {
+			return false;
+		}
+
+		if ( 'checkbox' === $field['type'] ) {
+			return true;
+		}
+
+		if ( 'select' === $field['type'] && ! empty( $field['multiple'] ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Format a meta value based on given format type and options.
 	 *
 	 * @param mixed  $value  The raw meta value.
@@ -544,6 +578,34 @@ class BPFWE_Helper {
 				}
 				return $value;
 
+			case 'boolean':
+				$format     = isset( $args['boolean_format'] ) ? $args['boolean_format'] : 'yes_no';
+				$normalized = filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
+
+				if ( null === $normalized ) {
+					return $value;
+				}
+
+				switch ( $format ) {
+					case 'true_false':
+						$formatted = $normalized ? esc_html__( 'True', 'better-post-filter-widgets-for-elementor' ) : esc_html__( 'False', 'better-post-filter-widgets-for-elementor' );
+						break;
+
+					case 'custom':
+						$true_label  = isset( $args['boolean_true_label'] ) && '' !== $args['boolean_true_label'] ? $args['boolean_true_label'] : esc_html__( 'Yes', 'better-post-filter-widgets-for-elementor' );
+						$false_label = isset( $args['boolean_false_label'] ) && '' !== $args['boolean_false_label'] ? $args['boolean_false_label'] : esc_html__( 'No', 'better-post-filter-widgets-for-elementor' );
+
+						$formatted = $normalized ? $true_label : $false_label;
+						break;
+
+					case 'yes_no':
+					default:
+						$formatted = $normalized ? esc_html__( 'Yes', 'better-post-filter-widgets-for-elementor' ) : esc_html__( 'No', 'better-post-filter-widgets-for-elementor' );
+						break;
+				}
+
+				return $formatted;
+
 			case 'none':
 			default:
 				return $value;
@@ -586,10 +648,20 @@ class BPFWE_Helper {
 		$defaults = is_array( $defaults ) ? $defaults : [];
 
 		// Prepare attributes for each component.
+		// Priority: Loop (global) → Query-specific.
 		$attributes = [
-			'wrapper'       => self::bpfwe_prepare_attributes( "bpfwe/post_wrapper_attr/{$query_id}", $widget, 'wrapper', $defaults ),
-			'wrapper_inner' => self::bpfwe_prepare_attributes( "bpfwe/post_wrapper_inner_attr/{$query_id}", $widget, 'wrapper_inner', $defaults ),
-			'post'          => self::bpfwe_prepare_attributes( "bpfwe/post_attr/{$query_id}", $widget, 'post', $defaults ),
+			'wrapper'       => array_merge(
+				self::bpfwe_prepare_attributes( 'bpfwe/post_wrapper_attr/loop', $widget, 'wrapper', $defaults ),
+				self::bpfwe_prepare_attributes( "bpfwe/post_wrapper_attr/{$query_id}", $widget, 'wrapper', $defaults )
+			),
+			'wrapper_inner' => array_merge(
+				self::bpfwe_prepare_attributes( 'bpfwe/post_wrapper_inner_attr/loop', $widget, 'wrapper_inner', $defaults ),
+				self::bpfwe_prepare_attributes( "bpfwe/post_wrapper_inner_attr/{$query_id}", $widget, 'wrapper_inner', $defaults )
+			),
+			'post'          => array_merge(
+				self::bpfwe_prepare_attributes( 'bpfwe/post_attr/loop', $widget, 'post', $defaults ),
+				self::bpfwe_prepare_attributes( "bpfwe/post_attr/{$query_id}", $widget, 'post', $defaults )
+			),
 		];
 
 		// Ensure each component has valid attributes.
