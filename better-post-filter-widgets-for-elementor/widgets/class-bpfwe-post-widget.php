@@ -209,7 +209,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 				'type'        => \Elementor\Controls_Manager::TEXT,
 				'render_type' => 'ui',
 				'condition'   => [
-					'classic_layout'       => 'feed',
+					'classic_layout' => 'feed',
 				],
 			]
 		);
@@ -221,7 +221,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 				'type'        => \Elementor\Controls_Manager::TEXT,
 				'render_type' => 'ui',
 				'condition'   => [
-					'classic_layout'       => 'feed',
+					'classic_layout' => 'feed',
 				],
 			]
 		);
@@ -243,10 +243,10 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 		$this->add_control(
 			'post_skin',
 			[
-				'type'     => \Elementor\Controls_Manager::SELECT,
-				'label'    => esc_html__( 'Post Skin', 'better-post-filter-widgets-for-elementor' ),
-				'default'  => 'classic',
-				'options'  => [
+				'type'      => \Elementor\Controls_Manager::SELECT,
+				'label'     => esc_html__( 'Post Skin', 'better-post-filter-widgets-for-elementor' ),
+				'default'   => 'classic',
+				'options'   => [
 					'classic'     => esc_html__( 'Classic', 'better-post-filter-widgets-for-elementor' ),
 					'side'        => esc_html__( 'On Side', 'better-post-filter-widgets-for-elementor' ),
 					'banner'      => esc_html__( 'Banner', 'better-post-filter-widgets-for-elementor' ),
@@ -495,7 +495,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 			[
 				'label'     => esc_html__( 'Available Tags:', 'better-post-filter-widgets-for-elementor' ),
 				'type'      => \Elementor\Controls_Manager::RAW_HTML,
-				'raw'       => esc_html__( '#TITLE#, #CONTENT#, #EXCERPT#, #PERMALINK#, #IMAGE#', 'better-post-filter-widgets-for-elementor' ),
+				'raw'       => esc_html__( '#TITLE#, #CONTENT#, #EXCERPT#, #PERMALINK#, #IMAGE#, #ID#', 'better-post-filter-widgets-for-elementor' ),
 				'condition' => [
 					'post_skin' => 'custom_html',
 				],
@@ -3212,7 +3212,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 				'label_on'           => esc_html__( 'Yes', 'better-post-filter-widgets-for-elementor' ),
 				'label_off'          => esc_html__( 'No', 'better-post-filter-widgets-for-elementor' ),
 				'return_value'       => 'yes',
-				'default'            => 'yes',
+				'default'            => '',
 				'frontend_available' => true,
 				'conditions'         => [
 					'relation' => 'or',
@@ -3329,6 +3329,19 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 					'post_external_url!' => '',
 					'post_skin!'         => [ 'template' ],
 				],
+			]
+		);
+
+		$this->add_control(
+			'force_dynamic_background_refresh',
+			[
+				'label'        => esc_html__( 'Refresh Background Images', 'better-post-filter-widgets-for-elementor' ),
+				'type'         => \Elementor\Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'Yes', 'bpfwe' ),
+				'label_off'    => esc_html__( 'No', 'bpfwe' ),
+				'return_value' => 'yes',
+				'default'      => 'no',
+				'description'  => esc_html__( 'Enable this if dynamic background images display the wrong image after filtering.', 'better-post-filter-widgets-for-elementor' ),
 			]
 		);
 
@@ -4099,7 +4112,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 		// ------------------------------------------------------------------------- CONTROL: Title Style
 		$this->start_controls_section(
-			'title_style',
+			'bpfwe_title_style',
 			[
 				'label'     => esc_html__( 'Title', 'better-post-filter-widgets-for-elementor' ),
 				'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -4633,7 +4646,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 		// ------------------------------------------------------------------------- CONTROL: Content/Excerpt Style
 		$this->start_controls_section(
-			'content_style',
+			'bpfwe_content_style',
 			[
 				'label'     => esc_html__( 'Content/Excerpt', 'better-post-filter-widgets-for-elementor' ),
 				'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -4809,7 +4822,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 		// ------------------------------------------------------------------------- CONTROL: HTML Style
 		$this->start_controls_section(
-			'html_style',
+			'bpfwe_html_style',
 			[
 				'label' => esc_html__( 'HTML/Shortcode', 'better-post-filter-widgets-for-elementor' ),
 				'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
@@ -4982,7 +4995,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 		// ------------------------------------------------------------------------- CONTROL: Taxonomy Style
 		$this->start_controls_section(
-			'taxonomy_style',
+			'bpfwe_taxonomy_style',
 			[
 				'label'     => esc_html__( 'Taxonomy', 'better-post-filter-widgets-for-elementor' ),
 				'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -5153,7 +5166,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 		// ------------------------------------------------------------------------- CONTROL: Custom Field Style
 		$this->start_controls_section(
-			'custom_field_style',
+			'bpfwe_custom_field_style',
 			[
 				'label' => esc_html__( 'Custom Field/ACF', 'better-post-filter-widgets-for-elementor' ),
 				'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
@@ -5323,7 +5336,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 		// ------------------------------------------------------------------------- CONTROL: Post Meta Style
 		$this->start_controls_section(
-			'post_meta_style',
+			'bpfwe_post_meta_style',
 			[
 				'label'     => esc_html__( 'Post Meta', 'better-post-filter-widgets-for-elementor' ),
 				'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -5538,7 +5551,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 		// ------------------------------------------------------------------------- CONTROL: Read More Style
 		$this->start_controls_section(
-			'read_more_style',
+			'bpfwe_read_more_style',
 			[
 				'label'     => esc_html__( 'Read More', 'better-post-filter-widgets-for-elementor' ),
 				'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -6574,7 +6587,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 		if ( class_exists( 'WooCommerce' ) ) {
 			// ------------------------------------------------------------------------- CONTROL: Product Price Style
 			$this->start_controls_section(
-				'product_price_style',
+				'bpfwe_product_price_style',
 				[
 					'label'     => esc_html__( 'Product Price', 'better-post-filter-widgets-for-elementor' ),
 					'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -6781,7 +6794,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 			// ------------------------------------------------------------------------- CONTROL: Buy Now Style
 			$this->start_controls_section(
-				'buy_now_style',
+				'bpfwe_buy_now_style',
 				[
 					'label'     => esc_html__( 'Buy Now', 'better-post-filter-widgets-for-elementor' ),
 					'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -6950,7 +6963,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 			// ------------------------------------------------------------------------- CONTROL: Add To Cart Style
 			$this->start_controls_section(
-				'add_to_cart_style',
+				'bpfwe_add_to_cart_style',
 				[
 					'label'     => esc_html__( 'Add To Cart', 'better-post-filter-widgets-for-elementor' ),
 					'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -7297,7 +7310,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 			// ------------------------------------------------------------------------- CONTROL: Product Badge Style
 			$this->start_controls_section(
-				'product_badge_style',
+				'bpfwe_product_badge_style',
 				[
 					'label'     => esc_html__( 'Product Badge', 'better-post-filter-widgets-for-elementor' ),
 					'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -7466,7 +7479,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 			// ------------------------------------------------------------------------- CONTROL: Product Rating Style
 			$this->start_controls_section(
-				'product_rating_style',
+				'bpfwe_product_rating_style',
 				[
 					'label'     => esc_html__( 'Product Rating', 'better-post-filter-widgets-for-elementor' ),
 					'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -8616,7 +8629,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 		// ------------------------------------------------------------------------- CONTROL: Post Pin Style
 		$this->start_controls_section(
-			'post_pin_style',
+			'bpfwe_post_pin_style',
 			[
 				'label'     => esc_html__( 'Bookmark', 'better-post-filter-widgets-for-elementor' ),
 				'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -8764,7 +8777,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 		// ------------------------------------------------------------------------- CONTROL: Edit Options Style
 		$this->start_controls_section(
-			'edit_options_style',
+			'bpfwe_edit_options_style',
 			[
 				'label'     => esc_html__( 'Edit Options', 'better-post-filter-widgets-for-elementor' ),
 				'tab'       => \Elementor\Controls_Manager::TAB_STYLE,
@@ -9100,8 +9113,8 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 	 * @since 1.8.5
 	 * @access private
 	 *
-	 * @param int $template_id                                  Elementor template post ID.
-	 * @param int $post_id                                      Post ID to generate dynamic CSS for.
+	 * @param int                            $template_id                                  Elementor template post ID.
+	 * @param int                            $post_id                                      Post ID to generate dynamic CSS for.
 	 * @param \Elementor\Core\Files\CSS\Post $template_post_css The template Post_CSS object.
 	 * @return string The generated or cached CSS content.
 	 */
@@ -9277,7 +9290,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 		$current_page   = 1;
 
 		if ( 'main' === $settings['query_type'] ) {
-			if ( is_front_page() ) {
+			if ( is_front_page() && ! is_home() ) {
 				$current_page = max( 1, get_query_var( 'page' ) );
 			} else {
 				$current_page = max( 1, get_query_var( 'paged' ) );
@@ -9331,7 +9344,12 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 	protected function render() {
 		global $wp_query;
 		$settings = $this->get_settings_for_display();
-
+		if ( 'yes' === $settings['force_dynamic_background_refresh'] ) {
+			add_filter(
+				'bpfwe_enable_background_image_resolution',
+				'__return_true'
+			);
+		}
 		$overlay      = 'yes' === $settings['overlay'] ? '<span class="overlay"></span>' : '';
 		$lazy_load    = 'yes' === $settings['post_slider_lazy_load'] ? 'swiper-lazy' : '';
 		$class_swiper = 'elementor-grid';
@@ -9598,7 +9616,15 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 					if ( 'feed' === $settings['classic_layout'] ) {
 						$post_type = get_post_type( $post_id );
 
-						$taxonomies    = get_object_taxonomies( $post_type, 'names' );
+						$taxonomies = get_object_taxonomies( $post_type, 'names' );
+						$taxonomies = array_filter(
+							$taxonomies,
+							function ( $tax ) {
+								$tax_obj = get_taxonomy( $tax );
+								return $tax_obj && ! empty( $tax_obj->public );
+							}
+						);
+
 						$display_terms = array();
 
 						$post_types_array = array( $post_type );
@@ -9703,6 +9729,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 						$html_content = str_replace( '#PERMALINK#', esc_url( get_permalink() ), $html_content );
 						$html_content = str_replace( '#CONTENT#', get_the_content(), $html_content );
 						$html_content = str_replace( '#EXCERPT#', get_the_excerpt(), $html_content );
+						$html_content = str_replace( '#ID#', absint( $post_id ), $html_content );
 						$html_content = str_replace( '#IMAGE#', $image, $html_content );
 
 						echo '<' . esc_attr( $post_html_tag ) . ' class="' . esc_attr( implode( ' ', array_filter( [ 'post-wrapper', $attrs['post']['class'] ] ) ) ) . '" ' . $attrs['post']['attributes'] . ' data-post-id="' . esc_attr( $post_id ) . '" ' . ( $feed_terms ? 'data-term="' . esc_attr( $feed_terms ) . '"' : '' ) . '><div class="inner-content">'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -9862,8 +9889,8 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 
 							// Display Pin.
 							if ( 'Pin Post' === $item['post_content'] ) {
-								$pin_icon   = isset( $item['pin_icon'] ) ? BPFWE_Helper::bpfwe_get_icons( $item['pin_icon'] ) : '';
-								$unpin_icon = isset( $item['unpin_icon'] ) ? BPFWE_Helper::bpfwe_get_icons( $item['unpin_icon'] ) : '';
+								$pin_icon      = isset( $item['pin_icon'] ) ? BPFWE_Helper::bpfwe_get_icons( $item['pin_icon'] ) : '';
+								$unpin_icon    = isset( $item['unpin_icon'] ) ? BPFWE_Helper::bpfwe_get_icons( $item['unpin_icon'] ) : '';
 								$bpfwe_user_id = get_current_user_id();
 								$post_list     = array(); // Initialize as an empty array.
 
@@ -10119,7 +10146,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 				';
 				if ( 'infinite' === $pagination ) {
 					echo '
-						<div class="e-load-more-anchor"></div>
+						<div class="bpfwe-load-more-anchor"></div>
 					';
 				}
 			} else {
@@ -10522,7 +10549,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 				';
 				if ( 'infinite' === $pagination ) {
 					echo '
-						<div class="e-load-more-anchor"></div>
+						<div class="bpfwe-load-more-anchor"></div>
 					';
 				}
 			} else {
@@ -10682,7 +10709,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 							</' . esc_attr( $post_html_tag ) . '>';
 						} else {
 							echo '
-							<' . esc_attr( $post_html_tag ) . ' class="' . esc_attr( implode( ' ', array_filter( [ 'post-wrapper', 'row-span-expand', 'post-' . $post_id, $attrs['post']['class'] ] ) ) )  . '" ' . $attrs['post']['attributes'] . ' data-post-id="' . esc_attr( $bpfwe_term_id ) . '">
+							<' . esc_attr( $post_html_tag ) . ' class="' . esc_attr( implode( ' ', array_filter( [ 'post-wrapper', 'row-span-expand', 'post-' . $post_id, $attrs['post']['class'] ] ) ) ) . '" ' . $attrs['post']['attributes'] . ' data-post-id="' . esc_attr( $bpfwe_term_id ) . '">
 							<div class="inner-content">';
 							echo $this->render_template_for_post( intval( $settings['skin_template'] ), $post_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 							echo '
@@ -10959,7 +10986,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 				';
 				if ( 'infinite' === $pagination ) {
 					echo '
-						<div class="e-load-more-anchor"></div>
+						<div class="bpfwe-load-more-anchor"></div>
 					';
 				}
 			} else {
@@ -10971,6 +10998,12 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 				</div>
 				';
 			}
+		}
+		if ( 'yes' === $settings['force_dynamic_background_refresh'] ) {
+			remove_filter(
+				'bpfwe_enable_background_image_resolution',
+				'__return_true'
+			);
 		}
 	}
 }

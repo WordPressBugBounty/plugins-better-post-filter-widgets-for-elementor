@@ -5,7 +5,7 @@ Tags: elementor, woocommerce, product filter, post filter, ajax filter
 Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.8.7
+Stable tag: 1.8.8
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -139,7 +139,17 @@ This plugin includes both compressed and uncompressed versions of CSS and JavaSc
 
 == Changelog ==
 
+= 1.8.8 – 2026-06-24 =
+
+* New: Added style controls for quick deselect pills and selected terms shortcodes.
+* Fix: Fixed filter REST API pagination issue when used with the Elementor Pro Loop Grid widget.
+* Fix: Fixed compatibility issue with Elementor Pro load more pagination when using BPFWE filtering.
+* Fix: Added plugin-specific prefix to key Post Widget controls to prevent conflicts with other third-party plugins.
+* Tweak: Dynamic background handler is now disabled by default. Sites that rely on dynamic background image resolution can re-enable it via the "Refresh Background Images" control or the `bpfwe_enable_background_image_resolution` filter.
+* Tweak: "Scroll to top" behavior is now disabled by default in both Post and Filter widgets.
+
 = 1.8.7 – 2026-05-29 =
+
 * New: Added mobile mode shortcode to dynamically reposition filter widgets at specific breakpoints.
 * New: Added boolean support for custom meta fields.
 * New: Added numeric format support for checkboxes, radio buttons, and label lists.
@@ -155,6 +165,7 @@ This plugin includes both compressed and uncompressed versions of CSS and JavaSc
 * Dev: Migrated plugin-wide AJAX to REST API.
 
 = 1.8.6 – 2026-03-26 =
+
 * New: Added range slider support for numeric meta filters, including styling controls for full design customization.
 * Fix: Dynamic Archive Filtering is now fully context-aware on search result archive pages, keeping results within the searched terms.
 * Tweak: Improved and clarified descriptions for several options to enhance usability.
@@ -225,6 +236,6 @@ For full changelog, see [Changelog](https://wpsmartwidgets.com/doc/better-post-a
 
 == Upgrade Notice ==
 
-= 1.8.7 =
+= 1.8.8 =
 
-This maintenance update transitions the plugin's underlying AJAX architecture to the WordPress REST API, fixes conflicts with third-party caching tools, introduces a mobile mode shortcode, and fixes bugs.
+Bug fixes and new styling controls for filter pills.

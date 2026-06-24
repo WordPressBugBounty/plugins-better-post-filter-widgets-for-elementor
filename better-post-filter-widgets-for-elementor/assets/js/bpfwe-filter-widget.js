@@ -891,7 +891,7 @@
 
 						var $widget = $( this ).closest( '[data-id]' );
 						var postWidgetID = $widget.data( 'id' );
-						var url = $widget.find( '.e-load-more-anchor' ).data( 'next-page' );
+						var url = $widget.find( '.bpfwe-load-more-anchor, .e-load-more-anchor' ).data( 'next-page' );
 
 						if ( url ) {
 							var paged = getPageNumber( url );
@@ -1495,6 +1495,7 @@
 							widget_id: localWidgetID,
 							filter_widget: ( isFacetted && !facetAlreadyDone ) ? facetWidgetId : '',
 							template_id: templateID,
+							current_url: window.location.href,
 							page_id: pageID,
 							group_logic: groupLogic,
 							search_query: searchQuery,
@@ -1521,10 +1522,13 @@
 							inject_id: injectID,
 							query_id: queryID,
 						},
+						beforeSend: function (xhr) {
+							xhr.setRequestHeader('X-WP-Nonce', ajax_var.rest_nonce);
+						},
 						success: function ( data ) {
-							var response = data;
-							var content = response.html;
-							var filters = response.filters;
+							var response = ( typeof data === 'string' && data !== '0' ) ? JSON.parse( data ) : data;
+							var content = response.html || '';
+							var filters = response.filters || {};
 
 							if ( response.query && ajax_var.isUserLoggedIn ) {
 								const debugHtml = '<div class="query-debug-frame" style="background:#f5f5f5; border:1px solid #ccc; padding:10px; margin:15px 0; font-family: monospace; white-space: pre-wrap;">' + response.query + '</div>';
@@ -1534,22 +1538,29 @@
 								}
 							}
 
-							bpfweSyncFacetFilters( data, hasValues, filters );
+							bpfweSyncFacetFilters( response, hasValues, filters );
 
 							let originalState = originalStates[ localWidgetID ];
-							if ( data === '0' || !hasValues ) {
+
+							if ( !hasValues ) {
 								localTargetSelector.html( originalState ).fadeIn().removeClass( 'load filter-active' );
+
 								var currentSettings = localTargetSelector.data( 'settings' );
+
 								if ( currentSettings?.pagination_type === 'cwm_infinite' ) {
 									currentSettings.pagination_type = 'load_more_infinite_scroll';
 									localTargetSelector.data( 'settings', currentSettings );
 								}
+
 								if ( currentSettings?.pagination_load_type === 'cwm_ajax' ) {
 									currentSettings.pagination_load_type = 'ajax';
 									localTargetSelector.data( 'settings', currentSettings );
 								}
+
 								postCount( localTargetSelector );
+
 								var resetWidgetID = $loadingWidget.closest( '.elementor-widget-filter-widget' ).data( 'id' );
+
 								bpfweResetLinkedWidgets( resetWidgetID, "partial" );
 							} else {
 								if ( [ 'infinite', 'load_more', 'load_more_on_click', 'load_more_infinite_scroll', 'cwm_infinite' ].includes( paginationType ) ) {
@@ -1569,7 +1580,7 @@
 
 								localTargetSelector.find( '.loader' ).fadeOut();
 
-								if ( localTargetSelector.find( '.no-post' ).length || localTargetSelector.find( '.e-loop-nothing-found-message' ).length ) {
+								if ( localTargetSelector.find( '.no-post' ).length || localTargetSelector.find( '.e-loop-nothing-found-message' ).length || content === '' ) {
 									if ( nothingFoundMessage && nothingFoundMessage.trim() ) {
 										const safeMessage = nothingFoundMessage.replace( /</g, '&lt;' ).replace( />/g, '&gt;' );
 										localTargetSelector.html( `<div class="no-post e-loop-nothing-found-message">${safeMessage}</div>` );
@@ -1578,20 +1589,34 @@
 									var pagination = localTargetSelector.find( '.elementor-pagination, .pagination, nav[aria-label="Pagination"], nav[aria-label="Product Pagination"]' );
 									pagination.addClass( 'pagination-filter' );
 
-									var scrollAnchor = localTargetSelector.find( '.e-load-more-anchor' );
+									var scrollAnchor = localTargetSelector.find('.e-load-more-anchor');
 
-									var loadMoreButton = localTargetSelector.find( '.load-more' ),
-										elementorLoadMoreButton = localTargetSelector.find( '.e-load-more-anchor' ).nextAll().find( 'a.elementor-button' );
+									if (scrollAnchor.length) {
+										scrollAnchor.removeClass('e-load-more-anchor').addClass('bpfwe-load-more-anchor');
+									}
 
-									loadMoreButton.addClass( 'load-more-filter' );
-									elementorLoadMoreButton.addClass( 'load-more-filter' );
-									localTargetSelector.addClass( 'filter-active' );
+									var loadMoreButton = localTargetSelector.find('.load-more'),
+										elementorLoadMoreButton = localTargetSelector.find('.bpfwe-load-more-anchor, .e-load-more-anchor').nextAll().find('a.elementor-button');
+
+									loadMoreButton.addClass('load-more-filter');
+									elementorLoadMoreButton.addClass('load-more-filter');
+
+									var $loadMoreWrapper = localTargetSelector.find('.e-loop__load-more');
+
+									if ($loadMoreWrapper.length) {
+										$loadMoreWrapper.removeClass('e-loop__load-more').addClass('bpfwe-load-more-wrapper');
+										localTargetSelector.find('.e-load-more-spinner').appendTo('.elementor-button-wrapper .elementor-button');
+									}
+
+									localTargetSelector.addClass('filter-active');
 
 									var currentSettings = localTargetSelector.data( 'settings' );
+
 									if ( currentSettings?.pagination_type === 'load_more_infinite_scroll' ) {
 										currentSettings.pagination_type = 'cwm_infinite';
 										localTargetSelector.data( 'settings', currentSettings );
 									}
+
 									if ( currentSettings?.pagination_load_type === 'ajax' ) {
 										currentSettings.pagination_load_type = 'cwm_ajax';
 										localTargetSelector.data( 'settings', currentSettings );
@@ -1608,7 +1633,13 @@
 
 							paginationType = localTargetSelector.data( 'settings' )?.pagination || localTargetSelector.data( 'settings' )?.pagination_type || '';
 
-							var scrollAnchor = localTargetSelector.find( '.e-load-more-anchor' );
+							var scrollAnchor = localTargetSelector.find('.bpfwe-load-more-anchor');
+
+							if (!scrollAnchor.length) {
+								// Fallback only if needed.
+								scrollAnchor = localTargetSelector.find('.e-load-more-anchor');
+							}
+
 							if ( scrollAnchor.length ) {
 								var currentPage = scrollAnchor.data( 'page' );
 								maxPage = scrollAnchor.data( 'max-page' ) - 1;
@@ -1696,24 +1727,9 @@
 					const $filterWidget = $( `.elementor-widget-filter-widget[data-id="${widgetInteractionID}"]` );
 					if ( !$filterWidget.length ) return;
 
-					let selectedLabels = [];
-					let selectedItems  = [];
+					let selectedItems = [];
 
 					// Checkboxes & radios
-					$filterWidget.find( 'input[type="checkbox"]:checked, input[type="radio"]:checked' ).each( function () {
-						let labelText = $( this ).closest( 'label' ).find( 'span' ).first().text().trim();
-						labelText = labelText.replace( /\s*\(\d+\)\s*$/, '' ).replace( /\s*\(\–\)\s*$/, '' );
-						if ( labelText ) selectedLabels.push( labelText );
-					});
-
-					// Selects
-					$filterWidget.find( 'select option:selected' ).each( function () {
-						let text = $( this ).text().trim();
-						text = text.replace( /\s*\(\d+\)\s*$/, '' ).replace( /\s*\(\–\)\s*$/, '' );
-						if ( text && $( this ).val() ) selectedLabels.push( text );
-					});
-
-					// Build selectedItems
 					$filterWidget.find( 'input[type="checkbox"]:checked, input[type="radio"]:checked, select option:selected' ).each( function () {
 						const $input = $( this );
 						const value = $input.val();
@@ -1748,7 +1764,6 @@
 							if ( minVal != baseMin || maxVal != baseMax ) {
 								const label = `${minVal || ''} - ${maxVal || ''}`;
 
-								selectedLabels.push( label );
 								selectedItems.push({
 									value: `${minVal || ''}-${maxVal || ''}`,
 									label: label,
@@ -1759,6 +1774,14 @@
 							}
 						}
 					});
+
+					// Deduplicate by value to prevent double-registration from label+checkbox clicks.
+					selectedItems = selectedItems.filter( ( item, index, self ) =>
+						index === self.findIndex( i => i.value === item.value )
+					);
+
+					// Derive labels from the already-deduped selectedItems.
+					const selectedLabels = selectedItems.map( item => item.label );
 
 					const termsCountText = selectedLabels.length > 0
 						? `${selectedLabels.length} ${displaySelectedBefore}`
@@ -1786,31 +1809,31 @@
 
 					const pillsHtml = selectedItems.map( item => {
 
-					if ( item.type === 'range' ) {
+						if ( item.type === 'range' ) {
 
-						const minName = item.minInput.attr('name');
-						const maxName = item.maxInput.attr('name');
+							const minName = item.minInput.attr('name');
+							const maxName = item.maxInput.attr('name');
 
-						const minVal = parseFloat( item.minInput.val() );
-						const maxVal = parseFloat( item.maxInput.val() );
+							const minVal = parseFloat( item.minInput.val() );
+							const maxVal = parseFloat( item.maxInput.val() );
 
-						const baseMin = parseFloat( item.minInput.attr('data-base-min') );
-						const baseMax = parseFloat( item.maxInput.attr('data-base-max') );
+							const baseMin = parseFloat( item.minInput.attr('data-base-min') );
+							const baseMax = parseFloat( item.maxInput.attr('data-base-max') );
 
-						// do not create pill if still at default state.
-						if (
-							! isNaN( minVal ) &&
-							! isNaN( maxVal ) &&
-							minVal === baseMin &&
-							maxVal === baseMax
-						) {
-							return '';
+							// do not create pill if still at default state.
+							if (
+								! isNaN( minVal ) &&
+								! isNaN( maxVal ) &&
+								minVal === baseMin &&
+								maxVal === baseMax
+							) {
+								return '';
+							}
+
+							return `<span class="bpfwe-term-pill" data-range="true" data-min="${minName}" data-max="${maxName}" data-widget-id="${widgetInteractionID}">
+								<span class="bpfwe-term-remove" data-widget-id="${widgetInteractionID}">×</span> ${item.label}
+							</span>`;
 						}
-
-						return `<span class="bpfwe-term-pill" data-range="true" data-min="${minName}" data-max="${maxName}" data-widget-id="${widgetInteractionID}">
-							<span class="bpfwe-term-remove" data-widget-id="${widgetInteractionID}">×</span> ${item.label}
-						</span>`;
-					}
 
 						return `<span class="bpfwe-term-pill" data-term="${item.value}">
 							<span class="bpfwe-term-remove" data-widget-id="${widgetInteractionID}">×</span> ${item.label}
@@ -1867,7 +1890,7 @@
 				}
 
 				function bpfweInfiniteScroll( widgetID, targetSelector ) {
-					var scrollAnchor = targetSelector.find( '.e-load-more-anchor' ),
+					var scrollAnchor = targetSelector.find( '.bpfwe-load-more-anchor' ),
 						$paginationNext = targetSelector.find( '.pagination-filter a.next' );
 
 					if ( !$paginationNext.length ) {
@@ -1903,7 +1926,7 @@
 				}
 
 				function elementorInfiniteScroll( widgetID, targetSelector ) {
-					var scrollAnchor = targetSelector.find( '.e-load-more-anchor' ),
+					var scrollAnchor = targetSelector.find( '.bpfwe-load-more-anchor, .e-load-more-anchor' ),
 						currentPage = targetSelector.data( 'current-page' ) || 1,
 						maxPage = scrollAnchor.data( 'max-page' );
 
@@ -1969,7 +1992,7 @@
 				}
 
 				function bpfweSyncFacetFilters( data, hasValues, filters ) {
-					if ( data === '0' || !hasValues ) {
+					if ( !hasValues ) {
 						return;
 					}
 					if ( !filters || !Object.keys( filters ).length ) {
@@ -2008,8 +2031,28 @@
 							}
 
 							if ( $numericWrapper.hasClass( 'bpfwe-range-slider' ) ) {
-								$currentMin.trigger( 'change.bpfwe-slider' );
-								$currentMax.trigger( 'change.bpfwe-slider' );
+								const $sliderHandleMin = $current.find( '.bpfwe-slider-min' );
+								const $sliderHandleMax = $current.find( '.bpfwe-slider-max' );
+								const $sliderRange     = $current.find( '.bpfwe-slider-range' );
+								const $sliderValueMin  = $current.find( '.bpfwe-slider-value-min' );
+								const $sliderValueMax  = $current.find( '.bpfwe-slider-value-max' );
+
+								const newMin = parseFloat( $currentMin.val() );
+								const newMax = parseFloat( $currentMax.val() );
+								const sliderGlobalMin = parseFloat( $numericWrapper.data( 'min' ) );
+								const sliderGlobalMax = parseFloat( $numericWrapper.data( 'max' ) );
+
+								if ( $sliderHandleMin.length ) $sliderHandleMin.val( newMin );
+								if ( $sliderHandleMax.length ) $sliderHandleMax.val( newMax );
+
+								if ( ! isNaN( newMin ) && ! isNaN( newMax ) && ! isNaN( sliderGlobalMin ) && ! isNaN( sliderGlobalMax ) && sliderGlobalMax !== sliderGlobalMin ) {
+									const pctMin = ( ( newMin - sliderGlobalMin ) / ( sliderGlobalMax - sliderGlobalMin ) ) * 100;
+									const pctMax = ( ( newMax - sliderGlobalMin ) / ( sliderGlobalMax - sliderGlobalMin ) ) * 100;
+									$sliderRange.css( { left: pctMin + '%', width: ( pctMax - pctMin ) + '%' } );
+								}
+
+								if ( $sliderValueMin.length ) $sliderValueMin.text( newMin );
+								if ( $sliderValueMax.length ) $sliderValueMax.text( newMax );
 							}
 
 							return;

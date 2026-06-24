@@ -106,17 +106,23 @@ class BPFWE_Ajax {
 		$nonce = $request->get_header( 'X-WP-Nonce' );
 
 		if ( ! $nonce || ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-			return new WP_REST_Response(
-				[
-					'success'    => true,
-					'new_status' => $new_status,
-				],
-				200
+			return new WP_Error(
+				'rest_forbidden',
+				'Invalid nonce',
+				[ 'status' => 403 ]
 			);
 		}
 
-		$pin_class = sanitize_text_field( $request->get_param( 'pin_class' ) );
-		$post_id   = absint( $request->get_param( 'post_id' ) );
+		$post_id = absint( $request->get_param( 'post_id' ) );
+
+		if ( empty( $post_id ) || ! get_post( $post_id ) ) {
+			return new WP_Error(
+				'invalid_post',
+				'Invalid post ID.',
+				[ 'status' => 400 ]
+			);
+		}
+
 		$user_id   = get_current_user_id();
 		$post_list = [];
 
@@ -208,6 +214,7 @@ class BPFWE_Ajax {
 		'widget_id',
 		'filter_widget',
 		'template_id',
+		'current_url',
 		'page_id',
 		'group_logic',
 		'search_query',
@@ -251,6 +258,7 @@ class BPFWE_Ajax {
 
 		$template_id      = ! empty( $params['template_id'] ) ? absint( $params['template_id'] ) : '';
 		$page_id          = ! empty( $params['page_id'] ) ? absint( $params['page_id'] ) : '';
+		$current_url      = ! empty( $params['current_url'] ) ? sanitize_text_field( wp_unslash( $params['current_url'] ) ) : home_url( '/' );
 		$widget_id        = ! empty( $params['widget_id'] ) ? sanitize_key( $params['widget_id'] ) : '';
 		$filter_widget_id = ! empty( $params['filter_widget'] ) ? sanitize_text_field( $params['filter_widget'] ) : '';
 		$inject_id        = ! empty( $params['inject_id'] ) ? sanitize_text_field( $params['inject_id'] ) : '';
@@ -284,7 +292,8 @@ class BPFWE_Ajax {
 		}
 
 		$post_status = get_post_status( $template_id );
-		if ( 'publish' !== $post_status && ! current_user_can( 'edit_post', $template_id ) ) {
+
+		if ( 'publish' !== $post_status && ! is_user_logged_in() ) {
 			return new WP_Error(
 				'rest_forbidden',
 				'You do not have permission to view this layout template.',
@@ -727,14 +736,8 @@ class BPFWE_Ajax {
 
 		if ( true === $is_empty ) {
 			$this->filter_query = null;
-			return new WP_REST_Response(
-				[
-					'html'          => '',
-					'max_num_pages' => 0,
-					'found_posts'   => 0,
-				],
-				200
-			);
+		} else {
+			$this->filter_query = $args;
 		}
 
 		if ( false === $is_empty && $filter_widget_id ) {
@@ -760,33 +763,14 @@ class BPFWE_Ajax {
 			$this->filter_post_ids = null;
 		}
 
-		$this->filter_query = $args;
-
 		// error_log( 'Debugging $args: ' . print_r( $args, true ) ); -- Enable for debugging.
 
-		$captured_found_posts   = null;
-		$captured_max_num_pages = null;
-
-		$capture_hook = function ( $found_posts, $query ) use ( &$captured_found_posts, &$captured_max_num_pages ) {
-			if ( $query->is_main_query() || $query->get( 'no_found_rows' ) ) {
-				return $found_posts;
-			}
-			$posts_per_page = (int) $query->get( 'posts_per_page' );
-			if ( $posts_per_page > 0 ) {
-				$captured_found_posts   = (int) $found_posts;
-				$captured_max_num_pages = (int) ceil( $found_posts / $posts_per_page );
-			}
-			return $found_posts;
-		};
-
-		add_filter( 'found_posts', $capture_hook, 10, 2 );
 		$widget_html = $document->render_element( $widget_data );
-		remove_filter( 'found_posts', $capture_hook, 10 );
 
-		// Clean endpoints in pagination links.
+		// Clean AJAX endpoints in pagination links.
 		$ajax_endpoints = array(
 			admin_url( 'admin-ajax.php' ),
-			untrailingslashit( rest_url( 'bpfwe/v1/filter' ) ),
+			rest_url( 'bpfwe/v1/filter' ),
 		);
 
 		foreach ( $ajax_endpoints as $endpoint ) {
@@ -797,24 +781,60 @@ class BPFWE_Ajax {
 			);
 		}
 
-		// Rewrite all /page/X/ pagination to ?paged=X.
+		// Base URL for rebuilt pagination links: current page URL, stripped of any
+		// existing pagination query args.
+		$base_url = remove_query_arg( array( 'page_num', 'paged', 'page' ), $current_url );
+
+		// Rebuild data-next-page (always paged + 1), discarding Elementor's own URL entirely.
 		$widget_html = preg_replace_callback(
-			'#((?:href|data-next-page)=["\'][^"\']*)/page/(\d+)/#',
-			static fn( $matches ) => $matches[1] . '/?paged=' . $matches[2],
+			'#(data-next-page=["\'])(.*?)(["\'])#',
+			static function ( $matches ) use ( $base_url, $paged ) {
+				$new_url = esc_url( add_query_arg( 'page_num', $paged + 1, $base_url ) );
+				return $matches[1] . $new_url . $matches[3];
+			},
 			$widget_html
 		);
 
-		// Handle bare numeric homepage pagination.
+		// Rebuild <a> pagination hrefs based on their visible page number / role,
+		// discarding Elementor's own URL entirely.
 		$widget_html = preg_replace_callback(
-			'#(?<=href=["\'])' . preg_quote( trailingslashit( home_url() ), '#' ) . '(\d+)/#',
-			static fn( $matches ) => trailingslashit( home_url() ) . '?paged=' . $matches[1],
+			'#<a\b([^>]*\bclass=["\'][^"\']*\bpage-numbers\b[^"\']*["\'][^>]*)>(.*?)</a>#s',
+			static function ( $matches ) use ( $base_url, $paged ) {
+				$attrs   = $matches[1];
+				$inner   = $matches[2];
+				$is_prev = (bool) preg_match( '#\bprev\b#', $attrs );
+				$is_next = (bool) preg_match( '#\bnext\b#', $attrs );
+
+				if ( $is_prev ) {
+					$target_page = max( 1, $paged - 1 );
+				} elseif ( $is_next ) {
+					$target_page = $paged + 1;
+				} else {
+					// Numbered link: extract the trailing number from the link content,
+					// ignoring any "Page" screen-reader-only label text.
+					if ( preg_match( '#(\d+)\s*$#', $inner, $num_match ) ) {
+						$target_page = (int) $num_match[1];
+					} else {
+						$target_page = $paged;
+					}
+				}
+
+				$new_url = esc_url( add_query_arg( 'page_num', $target_page, $base_url ) );
+
+				// Replace the existing href attribute entirely, or add one if missing.
+				if ( preg_match( '#href=["\'][^"\']*["\']#', $attrs ) ) {
+					$new_attrs = preg_replace( '#href=["\'][^"\']*["\']#', 'href="' . $new_url . '"', $attrs );
+				} else {
+					$new_attrs = $attrs . ' href="' . $new_url . '"';
+				}
+
+				return '<a' . $new_attrs . '>' . $inner . '</a>';
+			},
 			$widget_html
 		);
 
 		$response = [
-			'html'          => $widget_html,
-			'max_num_pages' => $captured_max_num_pages ?? 0,
-			'found_posts'   => $captured_found_posts ?? 0,
+			'html' => $widget_html,
 		];
 
 		if ( $filter_widget_id ) {
