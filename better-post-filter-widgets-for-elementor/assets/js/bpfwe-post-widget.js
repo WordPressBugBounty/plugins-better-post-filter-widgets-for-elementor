@@ -156,19 +156,32 @@
 
 					var noTermLabel = settings.uncategorized_section_label || 'Uncategorized';
 
-					var $container;
-					$container = this.$element.find( '.post-container' );
+					var $container = this.$element.find( '.post-container' );
+					if ( $container.length === 0 ) return;
+
+					if ( $container.data( 'is-rendering-feed' ) ) return;
+					$container.data( 'is-rendering-feed', true );
+
 					$container.removeClass( 'feed-ready' );
 
-					if ( $container.length === 0 ) return;
 					var $inner = $container.find( '.post-container-inner' );
 					if ( $inner.length === 0 ) $inner = $container;
+
+					$inner.find( '.feed-header' ).remove();
+
 					var $grid = $inner.find( '.elementor-grid' );
 					var $pagination = $inner.find( '.pagination' );
 					var $pagination_button = $inner.find( '.load-more-wrapper' );
-					if ( $grid.length === 0 ) return;
+					
+					if ( $grid.length === 0 ) {
+						$container.data( 'is-rendering-feed', false );
+						return;
+					}
 					var $posts = $grid.find( '.post-wrapper' );
-					if ( $posts.length === 0 ) return;
+					if ( $posts.length === 0 ) {
+						$container.data( 'is-rendering-feed', false );
+						return;
+					}
 
 					// Helper.
 					const slugify = ( str ) => {
@@ -188,7 +201,7 @@
 					var postsData = [];
 					$posts.each( function () {
 						var $p = $( this );
-						var termsAttr = $p.attr( 'data-terms' ) || $p.attr( 'data-term' ) || $p.attr( 'data-term' ) || '';
+						var termsAttr = $p.attr( 'data-terms' ) || $p.attr( 'data-term' ) || '';
 						var termList = termsAttr.split( ',' ).map( t => t.trim() ).filter( Boolean );
 						var termNamesAttr = $p.attr( 'data-term-names' ) || '';
 
@@ -296,7 +309,8 @@
 					}
 
 					// Click handler (shortcode + legacy).
-					$( document ).off('click').on( 'click', '.' + filterClass + ' a, ' + shortcodeFilterSelector + ' a', function ( e ) {
+					var clickEventName = 'click.feedFilter_' + wID;
+					$( document ).off( clickEventName ).on( clickEventName, '.' + filterClass + ' a, ' + shortcodeFilterSelector + ' a', function ( e ) {
 						e.preventDefault();
 
 						var $this = $( this );
@@ -460,6 +474,8 @@
 							obs.observe( this );
 						} );
 					}
+
+					$container.data( 'is-rendering-feed', false );
 				},
 
 				changePostStatus: function() {
@@ -717,22 +733,20 @@
 									const hrefAttr = $btn.attr('href');
 									if (!hrefAttr) return;
 
+									const decodedHref = decodeURIComponent(hrefAttr);
+									const settingsMatch = decodedHref.match(/settings=([^&]+)/);
+									if (!settingsMatch) return;
 
-										const decodedHref = decodeURIComponent(hrefAttr);
-										const settingsMatch = decodedHref.match(/settings=([^&]+)/);
-										if (!settingsMatch) return;
+									const settingsJson = JSON.parse(atob(settingsMatch[1]));
+									if (!settingsJson || typeof settingsJson !== 'object' || !settingsJson.id) return;
 
-										const settingsJson = JSON.parse(atob(settingsMatch[1]));
-										if (!settingsJson || typeof settingsJson !== 'object' || !settingsJson.id) return;
+									// Update ID inside base64 payload.
+									settingsJson.id = `${widgetId}-${postId}-${originalCanvasId}`;
+									const newEncodedSettings = btoa(JSON.stringify(settingsJson));
+									const newHref = decodedHref.replace(/settings=[^&]+/, 'settings=' + encodeURIComponent(newEncodedSettings));
 
-										// Update ID inside base64 payload.
-										settingsJson.id = `${widgetId}-${postId}-${originalCanvasId}`;
-										const newEncodedSettings = btoa(JSON.stringify(settingsJson));
-										const newHref = decodedHref.replace(/settings=[^&]+/, 'settings=' + encodeURIComponent(newEncodedSettings));
-
-										$btn.attr('href', newHref);
-										$btn.attr('aria-controls', newId);
-
+									$btn.attr('href', newHref);
+									$btn.attr('aria-controls', newId);
 								});
 							});
 						});
@@ -773,8 +787,7 @@
 							}
 
 							loadPageNew($(this).attr('href'));
-
-							}
+						}
 					);
 
 					$element.off('click', '.load-more').on(
@@ -910,7 +923,6 @@
 						Swiper = null;
 					} else {
 						wrapper.css({
-							//'transition': 'opacity 1s ease, transform 0.8s ease',
 							'display': 'grid',
 							'opacity': '1',
 							'-webkit-transform': 'translateY(0px)',
@@ -922,7 +934,6 @@
 					let breakpoint = settings.carousel_breakpoints ? parseInt(settings.carousel_breakpoints) : 0;
 
 					const initializeSwiper =() => {
-						// Give unique classes based on widget ID.
 						wrapper.removeClass('elementor-grid').addClass(`swiper swiper-container bpfwe-swiper-${widgetId}`);
 						wrapper.children('.post-wrapper').addClass('swiper-slide').wrapAll('<div class="swiper-wrapper"></div>');
 
