@@ -2208,10 +2208,11 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 		$taxonomies     = [];
 		$all_terms      = [];
 		$all_post_lists = [];
+		$locale_key     = '_' . get_locale();
 
 		if ( $post_types ) {
 			foreach ( $post_types as $post_type ) {
-				$taxonomies_transient_key = 'bpfwe_taxonomies_' . $post_type;
+				$taxonomies_transient_key = 'bpfwe_taxonomies_' . $post_type . $locale_key;
 				$taxonomies[ $post_type ] = get_transient( $taxonomies_transient_key );
 
 				if ( false === $taxonomies[ $post_type ] ) {
@@ -2219,7 +2220,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 					set_transient( $taxonomies_transient_key, $taxonomies[ $post_type ], HOUR_IN_SECONDS );
 				}
 
-				$post_list_transient_key      = 'bpfwe_post_list_' . $post_type;
+				$post_list_transient_key      = 'bpfwe_post_list_' . $post_type . $locale_key;
 				$all_post_lists[ $post_type ] = get_transient( $post_list_transient_key );
 
 				if ( false === $all_post_lists[ $post_type ] ) {
@@ -2241,7 +2242,7 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 							}
 						}
 
-						$terms_transient_key = 'bpfwe_terms_' . $index;
+						$terms_transient_key = 'bpfwe_terms_' . $index . $locale_key;
 						if ( ! isset( $all_terms[ $index ] ) ) {
 							$all_terms[ $index ] = get_transient( $terms_transient_key );
 
@@ -2511,19 +2512,6 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 				],
 			]
 		);
-
-		// $this->add_control(
-			// 'post_custom_handler',
-			// [
-				// 'label'              => esc_html__( 'Custom AJAX Handler', 'better-post-filter-widgets-for-elementor' ),
-				// 'type'               => \Elementor\Controls_Manager::SWITCHER,
-				// 'label_on'           => esc_html__( 'On', 'better-post-filter-widgets-for-elementor' ),
-				// 'label_off'          => esc_html__( 'Off', 'better-post-filter-widgets-for-elementor' ),
-				// 'description'        => esc_html__( 'Loads a minimal WP environment for faster query processing. Default: Off. Impact on Speed: High.', 'better-post-filter-widgets-for-elementor' ),
-				// 'default'            => 'no',
-				// 'frontend_available' => true,
-			// ]
-		// );
 
 		$this->add_control(
 			'query_id',
