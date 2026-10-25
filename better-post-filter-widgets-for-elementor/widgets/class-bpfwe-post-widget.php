@@ -2513,6 +2513,19 @@ class BPFWE_Post_Widget extends \Elementor\Widget_Base {
 			]
 		);
 
+		// $this->add_control(
+			// 'post_custom_handler',
+			// [
+				// 'label'              => esc_html__( 'Custom AJAX Handler', 'better-post-filter-widgets-for-elementor' ),
+				// 'type'               => \Elementor\Controls_Manager::SWITCHER,
+				// 'label_on'           => esc_html__( 'On', 'better-post-filter-widgets-for-elementor' ),
+				// 'label_off'          => esc_html__( 'Off', 'better-post-filter-widgets-for-elementor' ),
+				// 'description'        => esc_html__( 'Loads a minimal WP environment for faster query processing. Default: Off. Impact on Speed: High.', 'better-post-filter-widgets-for-elementor' ),
+				// 'default'            => 'no',
+				// 'frontend_available' => true,
+			// ]
+		// );
+
 		$this->add_control(
 			'query_id',
 			[
